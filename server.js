@@ -41,13 +41,13 @@ var stateKey = 'spotify_auth_state';
 
 var app = express();
 
-app.use(express.static(path.join(__dirname, 'build')))
+app.use(express.static(path.join(__dirname)))
    .use(cors())
    .use(cookieParser());
 
-app.get('*', (request, response) => {
-  response.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+// app.get('*', (request, response) => {
+//   response.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
 
 app.get('/', function(req,res){
   res.send('hello world');
