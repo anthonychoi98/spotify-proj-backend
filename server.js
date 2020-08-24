@@ -49,6 +49,10 @@ app.get('*', (request, response) => {
   response.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
+app.get('/', function(req,res){
+  res.send('hello world');
+})
+
 app.get('/login', function(req, res) {
 
   var state = generateRandomString(16);
