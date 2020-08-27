@@ -14,6 +14,7 @@ var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var path = require('path');
 require('dotenv').config();
+var mysql = require('mysql');
 
 var PORT = process.env.PORT || 8888;
 
@@ -45,13 +46,49 @@ app.use(express.static(path.join(__dirname)))
    .use(cors())
    .use(cookieParser());
 
-// app.get('*', (request, response) => {
-//   response.sendFile(path.join(__dirname, 'build', 'index.html'));
-// });
+
+const connection = mysql.createConnection({
+  host: 'us-cdbr-east-02.cleardb.com',
+  user: 'b4f7eed6fcee92',
+  password: '8be78491',
+  database: 'heroku_3cf87fcb3076f4e'
+})
+
+connection.connect(err =>{
+  if(err){
+    console.log(err);
+  }
+});
+
 
 app.get('/', function(req,res){
-  res.send('hello world');
+  res.send('see /tracks to see tracks');
 })
+
+const sql = "CREATE TABLE IF NOT EXISTS USER(RANK int AUTO_INCREMENT PRIMARY KEY, TRACK VARCHAR(100) NOT NULL, ARTIST VARCHAR(100) NOT NULL, PERIOD VARCHAR(13) NOT NULL, URI VARCHAR(100) NOT NULL, DATE DATE NOT NULL);";
+app.get('/createTable', (req, res) => {
+  //the parameters sent can be accessed via req.params.var_name
+  connection.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Table created");
+  });
+})
+
+
+const addsql = "INSERT INTO USER(TRACK, ARTIST, URI, PERIOD) values('All Day', 'Kanye West', 'Long_Term');";
+app.get('/addTracks', (req, res) => {
+  connection.query(addsql, function (err, result) {
+    if (err) throw err;
+    console.log("track created");
+  });
+})
+
+
+const getST="SELECT * FROM USER WHERE 'Short_Term' = USER.PERIOD ORDER BY USER.RANK ASC;";
+app.get('/getShortTerm', (req, res) => {
+  
+})
+
 
 app.get('/login', function(req, res) {
 
@@ -118,6 +155,7 @@ app.get('/callback', function(req, res) {
         });
 
         // we can also pass the token to the browser to make requests from there
+        
         res.redirect('https://whispering-caverns-57172.herokuapp.com/#' +
           querystring.stringify({
             access_token: access_token,
