@@ -12,6 +12,7 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser').json()
 var path = require('path');
 require('dotenv').config();
 var mysql = require('mysql');
@@ -44,15 +45,18 @@ var app = express();
 
 app.use(express.static(path.join(__dirname)))
    .use(cors())
-   .use(cookieParser());
+   .use(cookieParser())
+   .use(bodyParser);
 
 
-const connection = mysql.createConnection({
-  host: 'us-cdbr-east-02.cleardb.com',
-  user: 'b4f7eed6fcee92',
-  password: '8be78491',
-  database: 'heroku_3cf87fcb3076f4e'
-})
+const db_config = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB
+};
+
+var connection = mysql.createConnection(db_config);
 
 connection.connect(err =>{
   if(err){
@@ -60,33 +64,56 @@ connection.connect(err =>{
   }
 });
 
+let pool = mysql.createPool(db_config);
+
+pool.on('connection', function (_conn) {
+    if (_conn) {
+        logger.info('Connected the database via threadId %d!!', _conn.threadId);
+        _conn.query('SET SESSION auto_increment_increment=1');
+    }
+});
 
 app.get('/', function(req,res){
   res.send('see /tracks to see tracks');
 })
 
-const sql = "CREATE TABLE IF NOT EXISTS USER(RANK int AUTO_INCREMENT PRIMARY KEY, TRACK VARCHAR(100) NOT NULL, ARTIST VARCHAR(100) NOT NULL, PERIOD VARCHAR(13) NOT NULL, URI VARCHAR(100) NOT NULL, DATE DATE NOT NULL);";
-app.get('/createTable', (req, res) => {
-  //the parameters sent can be accessed via req.params.var_name
-  connection.query(sql, function (err, result) {
+app.post('/addTracks', (req, res) => {
+
+  connection.query("DELETE FROM tracks WHERE tracks.PERIOD='"+ req.body[0].period + "'", function (err, result) {
     if (err) throw err;
-    console.log("Table created");
+  });
+
+  req.body.forEach(track => {
+    const new_query = "INSERT INTO tracks(USER, TRACK, ARTIST, URI, PERIOD, DATE) VALUES('" + track.user.toLowerCase() + "', '" + track.name + "', '" + track.artist + "', '" + track.uri + "', '" + track.period + "', '" + track.date + "');";
+
+    connection.query(new_query, function (err, result) {
+      if (err) throw err;
+    });
   });
 })
 
-
-const addsql = "INSERT INTO USER(TRACK, ARTIST, URI, PERIOD) values('All Day', 'Kanye West', 'Long_Term');";
-app.get('/addTracks', (req, res) => {
-  connection.query(addsql, function (err, result) {
+app.post('/getshort_term', (req, res) => {
+  const getShortTermTracks="SELECT * FROM TRACKS WHERE TRACKS.USER = '"+ req.body.email +"' AND TRACKS.PERIOD = 'short_term' ORDER BY TRACKS.RANK ASC;";
+  connection.query(getShortTermTracks, function (err, result) {
     if (err) throw err;
-    console.log("track created");
+    res.send(result);
   });
 })
 
+app.post('/getmedium_term', (req, res) => {
+  const getMediumTermTracks="SELECT * FROM TRACKS WHERE TRACKS.USER = '"+ req.body.email +"' AND TRACKS.PERIOD = 'medium_term' ORDER BY TRACKS.RANK ASC;";
+  let tracks = connection.query(getMediumTermTracks, function (err, result) {
+    if (err) throw err;
+    res.send(result);
+  });
+})
 
-const getST="SELECT * FROM USER WHERE 'Short_Term' = USER.PERIOD ORDER BY USER.RANK ASC;";
-app.get('/getShortTerm', (req, res) => {
-  
+app.post('/getlong_term', (req, res) => {
+  const getLongTermTracks="SELECT * FROM TRACKS WHERE TRACKS.USER = '"+ req.body.email +"' AND TRACKS.PERIOD = 'long_term' ORDER BY TRACKS.RANK ASC;";
+  let tracks = connection.query(getLongTermTracks, function (err, result) {
+    if (err) throw err;
+    res.send(result);
+  });
 })
 
 
