@@ -101,7 +101,7 @@ app.post('/getshort_term', (req, res) => {
 
 app.post('/getmedium_term', (req, res) => {
   const getMediumTermTracks="SELECT * FROM TRACKS WHERE TRACKS.USER = '"+ req.body.email +"' AND TRACKS.PERIOD = 'medium_term' ORDER BY TRACKS.RANK ASC;";
-  let tracks = connection.query(getMediumTermTracks, function (err, result) {
+  connection.query(getMediumTermTracks, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
@@ -109,7 +109,7 @@ app.post('/getmedium_term', (req, res) => {
 
 app.post('/getlong_term', (req, res) => {
   const getLongTermTracks="SELECT * FROM TRACKS WHERE TRACKS.USER = '"+ req.body.email +"' AND TRACKS.PERIOD = 'long_term' ORDER BY TRACKS.RANK ASC;";
-  let tracks = connection.query(getLongTermTracks, function (err, result) {
+  connection.query(getLongTermTracks, function (err, result) {
     if (err) throw err;
     res.send(result);
   });
