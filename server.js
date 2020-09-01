@@ -78,8 +78,7 @@ app.get('/', function(req,res){
 })
 
 app.post('/addTracks', (req, res) => {
-
-  connection.query("DELETE FROM tracks WHERE tracks.PERIOD='"+ req.body[0].period + "' AND tracks.USER='" + req.body[0].email + "';", function (err, result) {
+  connection.query("DELETE FROM tracks WHERE tracks.PERIOD='"+ req.body[0].period + "' AND tracks.USER='" + req.body[0].user + "';", function (err, result) {
     if (err) throw err;
   });
 
