@@ -16,6 +16,7 @@ var bodyParser = require('body-parser').json()
 var path = require('path');
 require('dotenv').config();
 var mysql = require('mysql');
+var cron = require('node-cron');
 
 var PORT = process.env.PORT || 8888;
 
@@ -220,5 +221,22 @@ app.get('/refresh_token', function(req, res) {
     }
   });
 });
+
+cron.schedule('*/2 * * * *', () => {
+  request.delete(
+    {
+        url: 'https://api.heroku.com/apps/spotifyloginapi/dynos/',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.heroku+json; version=3',
+            'Authorization': 'Bearer ' + process.env.TOKEN
+        }
+    },
+    function(error, response, body) {
+       console.log(error);
+    }
+);
+});
+
 
 app.listen(PORT, console.log(`Server is starting at ${PORT}`));
