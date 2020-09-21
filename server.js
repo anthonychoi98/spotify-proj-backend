@@ -222,10 +222,10 @@ app.get('/refresh_token', function(req, res) {
   });
 });
 
-cron.schedule('*/2 * * * *', () => {
+cron.schedule('*/1 * * * *', () => {
   request.delete(
     {
-        url: 'https://api.heroku.com/apps/spotifyloginapi/dynos/',
+        url: 'https://api.heroku.com/apps/spotifyloginapi/dynos',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.heroku+json; version=3',
